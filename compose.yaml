@@ -1,7 +1,29 @@
+version: "3.9"
+
 services:
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=e1_development
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
   web:
     build: .
+    command: ./wait-for-postgres.sh db bin/rails server -b 0.0.0.0 -p 80
     environment:
       - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
     ports:
       - "3000:80"
+    depends_on:
+      - db
+
+volumes:
+  pg_data:
